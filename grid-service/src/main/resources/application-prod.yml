@@ -1,0 +1,30 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: grid-service
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  rabbitmq:
+    addresses: ${RABBITMQ_URL}
+    listener:
+      simple:
+        acknowledge-mode: manual # We want manual ACKs here too!
+        retry:
+          enabled: true
+          max-attempts: 3
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ASGARDEO_ISSUER_URI}
