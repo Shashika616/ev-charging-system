@@ -1,1 +1,131 @@
+name: CI/CD Pipeline
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Build and Test
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+
+    - name: Run tests
+      run: mvn test
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: jars
+        path: |
+          api-gateway/target/*.jar
+          station-service/target/*.jar
+          booking-service/target/*.jar
+          grid-service/target/*.jar
+
+  # Job 2: Deploy API Gateway
+  deploy-api-gateway:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: jars
+
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_API_GATEWAY_SERVICE_ID }}
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache":true}' \
+          "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys"
+
+  # Job 3: Deploy Station Service
+  deploy-station-service:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: jars
+
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_STATION_SERVICE_ID }}
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache":true}' \
+          "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys"
+
+  # Job 4: Deploy Booking Service
+  deploy-booking-service:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: jars
+
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_BOOKING_SERVICE_ID }}
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache":true}' \
+          "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys"
+
+  # Job 5: Deploy Grid Service
+  deploy-grid-service:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: jars
+
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_GRID_SERVICE_ID }}
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache":true}' \
+          "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys"
