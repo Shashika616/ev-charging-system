@@ -1,0 +1,40 @@
+# Compiled class files
+target/
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (NEVER commit secrets)
+*.env
+application-local.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak

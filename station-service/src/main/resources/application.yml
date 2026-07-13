@@ -1,0 +1,43 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: station-service
+
+  datasource:
+    url: jdbc:postgresql://aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?user=postgres.zeuzxasnrhlhrcfvlegd&password=Shashika_616
+    username: postgres
+    password: Shashika_616
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: rediss://default:gQAAAAAAAg8kAAIgcDIxNDc1NmQ0ZjllMGY0NDJmYTkzNDg3ZmI5NDE0M2E4NA@growing-reptile-134948.upstash.io:6379
+      port: 6379
+      password: gQAAAAAAAg8kAAIgcDIxNDc1NmQ0ZjllMGY0NDJmYTkzNDg3ZmI5NDE0M2E4NA
+      ssl:
+        enabled: true
+
+  rabbitmq:
+    addresses: amqps://slwalesk:AQ7_tKw1W6Ov4Od2doeZEouHTteJ5j5Q@kingfisher.lmq.cloudamqp.com/slwalesk
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: true
+          multiplier: 2.0
+          max-attempts: 3
+          initial-interval: 10000
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://api.asgardeo.io/t/org88nz1/oauth2/token

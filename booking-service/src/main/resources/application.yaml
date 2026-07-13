@@ -1,0 +1,24 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: booking-service
+
+  datasource:
+    url: jdbc:postgresql://aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?user=postgres.zeuzxasnrhlhrcfvlegd&password=Shashika_616
+    username: postgres
+    password: Shashika_616
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  rabbitmq:
+    addresses: amqps://slwalesk:AQ7_tKw1W6Ov4Od2doeZEouHTteJ5j5Q@kingfisher.lmq.cloudamqp.com/slwalesk
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://api.asgardeo.io/t/org88nz1/oauth2/token

@@ -1,0 +1,117 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # Asgardeo JWT Validation
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://api.asgardeo.io/t/org88nz1/oauth2/token
+
+  # Spring Cloud Gateway Routes
+  cloud:
+    gateway:
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "http://localhost:4200"
+              - "https://your-app.vercel.app"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+      # Default rate limiter configuration
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 100  # Allow 100 requests per second
+            redis-rate-limiter.burstCapacity: 100  # Max burst size
+            redis-rate-limiter.requestedTokens: 1  # Each request costs 1 token
+            key-resolver: "#{@userKeyResolver}"      
+      
+      # Route definitions
+      routes:
+        # Station Service Route
+        - id: station-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/stations/**
+          filters:
+            - StripPrefix=2  # Removes /api/stations prefix
+        
+        # Booking Service Route
+        - id: booking-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - StripPrefix=2  # Removes /api/bookings prefix
+        
+        # Grid Service Route
+        - id: grid-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/grid/**
+          filters:
+            - StripPrefix=2  # Removes /api/grid prefix
+
+  # --- RESILIENCE4J CONFIGURATION ---
+resilience4j:
+  circuitbreaker:
+    instances:
+      stationServiceCB:
+        slidingWindowSize: 10             # Evaluate the last 10 calls
+        minimumNumberOfCalls: 5           # Need at least 5 calls to calculate failure rate
+        failureRateThreshold: 50          # If 50% (5 out of 10) fail, OPEN the circuit
+        waitDurationInOpenState: 10s      # Stay OPEN for 10 seconds before trying again
+        permittedNumberOfCallsInHalfOpenState: 3 # Let 3 calls through to test if it's fixed
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      bookingServiceCB:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      gridServiceCB:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        
+  timelimiter:
+    instances:
+      stationServiceCB:
+        timeoutDuration: 3s               # If the service takes > 3s, count it as a failure!
+      bookingServiceCB:
+        timeoutDuration: 3s
+      gridServiceCB:
+        timeoutDuration: 3s          
+
+# Logging configuration
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+  data:
+    redis:
+      host: rediss://default:gQAAAAAAAg8kAAIgcDIxNDc1NmQ0ZjllMGY0NDJmYTkzNDg3ZmI5NDE0M2E4NA@growing-reptile-134948.upstash.io:6379
+      port: 6379
+      password: gQAAAAAAAg8kAAIgcDIxNDc1NmQ0ZjllMGY0NDJmYTkzNDg3ZmI5NDE0M2E4NA
+      ssl:
+        enabled: true
