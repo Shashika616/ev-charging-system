@@ -13,10 +13,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -28,15 +28,34 @@ jobs:
     - name: Run tests
       run: mvn test
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+    # Upload each service's JAR as a SEPARATE artifact (v4 best practice)
+    - name: Upload API Gateway artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: jars
-        path: |
-          api-gateway/target/*.jar
-          station-service/target/*.jar
-          booking-service/target/*.jar
-          grid-service/target/*.jar
+        name: api-gateway-jar
+        path: api-gateway/target/*.jar
+        retention-days: 1
+
+    - name: Upload Station Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: station-service-jar
+        path: station-service/target/*.jar
+        retention-days: 1
+
+    - name: Upload Booking Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: booking-service-jar
+        path: booking-service/target/*.jar
+        retention-days: 1
+
+    - name: Upload Grid Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: grid-service-jar
+        path: grid-service/target/*.jar
+        retention-days: 1
 
   # Job 2: Deploy API Gateway
   deploy-api-gateway:
@@ -45,16 +64,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
+    - name: Download API Gateway artifact
+      uses: actions/download-artifact@v4
       with:
-        name: jars
+        name: api-gateway-jar
 
-    - name: Deploy to Render
+    - name: Trigger Render Deploy
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         RENDER_SERVICE_ID: ${{ secrets.RENDER_API_GATEWAY_SERVICE_ID }}
       run: |
+        echo "Triggering deployment for API Gateway..."
         curl -X POST \
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
@@ -68,16 +88,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
+    - name: Download Station Service artifact
+      uses: actions/download-artifact@v4
       with:
-        name: jars
+        name: station-service-jar
 
-    - name: Deploy to Render
+    - name: Trigger Render Deploy
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         RENDER_SERVICE_ID: ${{ secrets.RENDER_STATION_SERVICE_ID }}
       run: |
+        echo "Triggering deployment for Station Service..."
         curl -X POST \
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
@@ -91,16 +112,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
+    - name: Download Booking Service artifact
+      uses: actions/download-artifact@v4
       with:
-        name: jars
+        name: booking-service-jar
 
-    - name: Deploy to Render
+    - name: Trigger Render Deploy
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         RENDER_SERVICE_ID: ${{ secrets.RENDER_BOOKING_SERVICE_ID }}
       run: |
+        echo "Triggering deployment for Booking Service..."
         curl -X POST \
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
@@ -114,16 +136,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
+    - name: Download Grid Service artifact
+      uses: actions/download-artifact@v4
       with:
-        name: jars
+        name: grid-service-jar
 
-    - name: Deploy to Render
+    - name: Trigger Render Deploy
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         RENDER_SERVICE_ID: ${{ secrets.RENDER_GRID_SERVICE_ID }}
       run: |
+        echo "Triggering deployment for Grid Service..."
         curl -X POST \
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
